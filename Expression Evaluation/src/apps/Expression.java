@@ -1,6 +1,7 @@
 package apps;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.*;
 
@@ -53,7 +54,8 @@ public class Expression {
         String input = expr;
         System.out.println("Expression: " + expr);
         //pattern to be matched
-        String lookFor = "[a-zA-Z]+";
+        String lookFor = "([a-zA-Z]+)(\\[)?";
+        
         // Create a Pattern object
         Pattern pattern = Pattern.compile(lookFor);
 
@@ -61,13 +63,24 @@ public class Expression {
         Matcher m = pattern.matcher(input);
 
         while (m.find()) {
-            ScalarSymbol scalar = new ScalarSymbol(m.group(0));
-            if (!scalars.contains(scalar)) {
-                scalars.add(scalar);
+            if (m.group(2) == null) {
+                ScalarSymbol scalar = new ScalarSymbol(m.group(1));
+                if (!scalars.contains(scalar)) {
+                    scalars.add(scalar);
+                }
             }
-            System.out.println("Found value:" + m.group(0));
+            else {
+                ArraySymbol array = new ArraySymbol(m.group(1));
+                if (!arrays.contains(array)) {
+                    arrays.add(array);
+                }
+            }
+            
+            System.out.println("Found value:" + m.group(1));
             System.out.println("Scalar Array: ");
             printScalars();
+            System.out.println("Array Array: ");
+            printArrays();
         }
         
     }
