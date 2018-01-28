@@ -59,26 +59,23 @@ public class Polynomial {
 	 *         is the front of the result polynomial
 	 */
 	public static Node add(Node poly1, Node poly2) {
-
 		if (poly1 == null && poly2 == null) {
 			return null;
 		}
 		Node poly3 = null;
-
 		Node previous = null;
 		Node current = null;
 
 		while (poly1 != null || poly2 != null) {
-			if  (poly1 == null || (poly2 != null && poly1.term.degree > poly2.term.degree)) {
+			if (compareDegree(poly1, poly2) == 1) {
 				current = new Node(poly2.term.coeff, poly2.term.degree, null);
 				poly2 = poly2.next;
 			}
-			else if (poly2 == null || poly1.term.degree < poly2.term.degree) {
+			else if (compareDegree(poly1, poly2) == -1) {
 				current = new Node(poly1.term.coeff, poly1.term.degree, null);
 				poly1 = poly1.next;
 			}
-
-			else if (poly1.term.degree == poly2.term.degree) {
+			else if (compareDegree(poly1, poly2) == 0) {
 				current = new Node(poly1.term.coeff+ poly2.term.coeff, poly1.term.degree, null);
 				poly1 = poly1.next;
 				poly2 = poly2.next;
@@ -93,18 +90,18 @@ public class Polynomial {
 		return poly3;
 	}
 
-	public static Node copyLinkedList(Node original) {
-		Node front = null;
-		Node end = null;
-		int counter = 0;
-		do {
-			Node node = new Node(original.term.coeff, original.term.degree, end);
-			end = node;
-			if (counter == 0) { front = node; }
-			counter ++;
-			original = original.next;
-		} while (original != null);
-		return front;
+	// < is -1
+	// > is 1
+	// = is 0
+	public static int compareDegree(Node one, Node two) {
+		if (one == null) {
+			return 1;
+		}
+		else if (two == null) {
+			return -1;
+		}
+		Integer degree1 = one.term.degree;
+		return degree1.compareTo(two.term.degree);
 	}
 	
 	/**
