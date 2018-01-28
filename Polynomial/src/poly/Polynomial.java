@@ -115,8 +115,20 @@ public class Polynomial {
 	 *         is the front of the result polynomial
 	 */
 	public static Node multiply(Node poly1, Node poly2) {
-
-		return null;
+		if (poly1 == null || poly2 == null) {
+			return null;
+		}
+		Node poly3 = null;
+		Node current;
+		for (Node pointer1 = poly1; pointer1 != null; pointer1 = pointer1.next) {
+			for (Node pointer2 = poly2; pointer2 != null; pointer2 = pointer2.next) {
+				float coeff = pointer1.term.coeff * pointer2.term.coeff;
+				int degree = pointer1.term.degree + pointer2.term.degree;
+				current = new Node (coeff, degree, null);
+				poly3 = add(poly3, current);
+			}
+		}
+		return poly3;
 	}
 		
 	/**
