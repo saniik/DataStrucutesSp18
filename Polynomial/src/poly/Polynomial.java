@@ -67,15 +67,16 @@ public class Polynomial {
 		Node current = null;
 
 		while (poly1 != null || poly2 != null) {
-			if (compareDegree(poly1, poly2) == 1) {
+			int comparison = compareDegree(poly1, poly2);
+			if (comparison == 1) {
 				current = new Node(poly2.term.coeff, poly2.term.degree, null);
 				poly2 = poly2.next;
 			}
-			else if (compareDegree(poly1, poly2) == -1) {
+			else if (comparison == -1) {
 				current = new Node(poly1.term.coeff, poly1.term.degree, null);
 				poly1 = poly1.next;
 			}
-			else if (compareDegree(poly1, poly2) == 0) {
+			else if (comparison == 0) {
 				current = new Node(poly1.term.coeff+ poly2.term.coeff, poly1.term.degree, null);
 				poly1 = poly1.next;
 				poly2 = poly2.next;
