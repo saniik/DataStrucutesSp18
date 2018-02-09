@@ -77,9 +77,12 @@ public class Polynomial {
 				poly1 = poly1.next;
 			}
 			else if (comparison == 0) {
-				current = new Node(poly1.term.coeff+ poly2.term.coeff, poly1.term.degree, null);
+				if (poly1.term.coeff + poly2.term.coeff != 0) {
+					current = new Node(poly1.term.coeff + poly2.term.coeff, poly1.term.degree, null);
+				}
 				poly1 = poly1.next;
 				poly2 = poly2.next;
+
 			}
 			if (previous != null) {
 				previous.next = current;
