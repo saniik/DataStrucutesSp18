@@ -267,7 +267,7 @@ public class Expression {
                 }
             }
         }
-        return tokenizerPosition - 1;
+        return tokenizerPosition;
     }
 
     private int runTokenizerToEndOfSquareSubExpression(StringTokenizer tokenizer, int tokenizerPosition) {
@@ -285,7 +285,7 @@ public class Expression {
                 }
             }
         }
-        return tokenizerPosition - 1;
+        return tokenizerPosition;
     }
 
     private boolean isOpenSquareParantheses(String token) { return token.equals("["); }
