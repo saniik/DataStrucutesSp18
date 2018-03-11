@@ -1,6 +1,7 @@
 package app;
 
 import java.io.*;
+import java.rmi.UnexpectedException;
 import java.util.*;
 import java.util.regex.*;
 
@@ -9,19 +10,19 @@ import structures.Stack;
 public class Expression {
 
 	public static String delims = " \t*+-/()[]";
-			
+
     /**
      * Populates the vars list with simple variables, and arrays lists with arrays
-     * in the expression. For every variable (simple or array), a SINGLE instance is created 
+     * in the expression. For every variable (simple or array), a SINGLE instance is created
      * and stored, even if it appears more than once in the expression.
      * At this time, values for all variables and all array items are set to
      * zero - they will be loaded from a file in the loadVariableValues method.
-     * 
+     *
      * @param expr The expression
      * @param vars The variables array list - already created by the caller
      * @param arrays The arrays array list - already created by the caller
      */
-    public static void 
+    public static void
     makeVariableLists(String expr, ArrayList<Variable> vars, ArrayList<Array> arrays) {
         System.out.println("Expression: " + expr);
         //pattern to be matched
@@ -58,17 +59,17 @@ public class Expression {
         System.out.println("Arrays: ");
         printArrays(arrays);
     }
-    
+
     /**
      * Loads values for variables and arrays in the expression
-     * 
+     *
      * @param sc Scanner for values input
-     * @throws IOException If there is a problem with the input 
+     * @throws IOException If there is a problem with the input
      * @param vars The variables array list, previously populated by makeVariableLists
      * @param arrays The arrays array list - previously populated by makeVariableLists
      */
-    public static void 
-    loadVariableValues(Scanner sc, ArrayList<Variable> vars, ArrayList<Array> arrays) 
+    public static void
+    loadVariableValues(Scanner sc, ArrayList<Variable> vars, ArrayList<Array> arrays)
     throws IOException {
         while (sc.hasNextLine()) {
             StringTokenizer st = new StringTokenizer(sc.nextLine().trim());
@@ -93,20 +94,20 @@ public class Expression {
                     StringTokenizer stt = new StringTokenizer(tok," (,)");
                     int index = Integer.parseInt(stt.nextToken());
                     int val = Integer.parseInt(stt.nextToken());
-                    arr.values[index] = val;              
+                    arr.values[index] = val;
                 }
             }
         }
     }
-    
+
     /**
      * Evaluates the expression.
-     * 
+     *
      * @param vars The variables array list, with values for all variables in the expression
      * @param arrays The arrays array list, with values for all array items
      * @return Result of evaluation
      */
-    public static float 
+    public static float
     evaluate(String expr, ArrayList<Variable> vars, ArrayList<Array> arrays) {
         try {
             expr = expr.replaceAll("\\s+","");
@@ -136,16 +137,15 @@ public class Expression {
             if (isOpenParantheses(token)) {
                 int endOfSubExpression = runTokenizerToEndOfCurvySubExpression(tokenizer, tokenizerPosition);
                 String subExpression = expr.substring(tokenizerPosition, endOfSubExpression);
-                tokenizerPosition = endOfSubExpression;
+                tokenizerPosition = endOfSubExpression+1;
                 lhs = evaluate2(subExpression, vars, arrays);
-            } else if (isHigherOrderOperator(token)) {
+            } else if (isOperation(token) && isHigherOrderOperator(token, nextOperation(expr.substring(tokenizerPosition, expr.length())))) {
                 String nextToken = tokenizer.nextToken();
                 tokenizerPosition += nextToken.length();
                 if (isOpenParantheses(nextToken)) {
-                    tokenizerPosition += nextToken.length();
                     int endOfSubExpression = runTokenizerToEndOfCurvySubExpression(tokenizer, tokenizerPosition);
                     String subExpression = expr.substring(tokenizerPosition, endOfSubExpression);
-                    tokenizerPosition = endOfSubExpression;
+                    tokenizerPosition = endOfSubExpression+1;
                     float subExpressionValue = evaluate2(subExpression, vars, arrays);
                     lhs = performOperation(lhs, subExpressionValue, token);
                 } else {
@@ -155,12 +155,12 @@ public class Expression {
                     } catch (NoSuchElementException e) {
                         Array array = findArray(nextToken, arrays);
                         String openSquareBracket = tokenizer.nextToken();
-                        tokenizerPosition += token.length();
+                        tokenizerPosition += nextToken.length();
                         assert array != null;
                         if (isOpenSquareParantheses(openSquareBracket)) {
                             int endOfSquareSubExpression = runTokenizerToEndOfSquareSubExpression(tokenizer, tokenizerPosition);
                             String subExpression = expr.substring(tokenizerPosition, endOfSquareSubExpression);
-                            tokenizerPosition = endOfSquareSubExpression;
+                            tokenizerPosition = endOfSquareSubExpression+1;
                             int arrayIndex = (int) evaluate2(subExpression, vars, arrays);
                             float arrayValue = arrayValue(array, arrayIndex);
                             System.out.println("Evaluated array " + array.name + "[" + arrayIndex + "] to " + arrayValue);
@@ -168,9 +168,36 @@ public class Expression {
                         }
                     }
                 }
-            } else if (isOperation(token)) {
-                // TODO: What if it's an open paren here?
-                tokenizerPosition += token.length();
+            } else if (isHigherOrderOperator(token, tokenizer.nextToken())) {
+                String nextToken = tokenizer.nextToken();
+                tokenizerPosition += nextToken.length();
+                if (isOpenParantheses(nextToken)) {
+                    int endOfSubExpression = runTokenizerToEndOfCurvySubExpression(tokenizer, tokenizerPosition);
+                    String subExpression = expr.substring(tokenizerPosition, endOfSubExpression);
+                    tokenizerPosition = endOfSubExpression+1;
+                    float subExpressionValue = evaluate2(subExpression, vars, arrays);
+                    lhs = performOperation(lhs, subExpressionValue, token);
+                } else {
+                    try {
+                        float next = eval(nextToken, vars);
+                        lhs = performOperation(lhs, next, token);
+                    } catch (NoSuchElementException e) {
+                        Array array = findArray(nextToken, arrays);
+                        String openSquareBracket = tokenizer.nextToken();
+                        tokenizerPosition += nextToken.length();
+                        assert array != null;
+                        if (isOpenSquareParantheses(openSquareBracket)) {
+                            int endOfSquareSubExpression = runTokenizerToEndOfSquareSubExpression(tokenizer, tokenizerPosition);
+                            String subExpression = expr.substring(tokenizerPosition, endOfSquareSubExpression);
+                            tokenizerPosition = endOfSquareSubExpression+1;
+                            int arrayIndex = (int) evaluate2(subExpression, vars, arrays);
+                            float arrayValue = arrayValue(array, arrayIndex);
+                            System.out.println("Evaluated array " + array.name + "[" + arrayIndex + "] to " + arrayValue);
+                            lhs = performOperation(lhs, arrayValue, token);
+                        }
+                    }
+                }
+            }else if (isOperation(token)) {
                 String rhsExpression = expr.substring(tokenizerPosition, expr.length());
                 float rhs = evaluate2(rhsExpression, vars, arrays);
                 return performOperation(lhs, rhs, token);
@@ -186,7 +213,7 @@ public class Expression {
                     if (isOpenSquareParantheses(openSquareBracket)) {
                         int endOfSquareSubExpression = runTokenizerToEndOfSquareSubExpression(tokenizer, tokenizerPosition);
                         String subExpression = expr.substring(tokenizerPosition, endOfSquareSubExpression);
-                        tokenizerPosition = endOfSquareSubExpression;
+                        tokenizerPosition = endOfSquareSubExpression+1;
                         int arrayIndex = (int) evaluate2(subExpression, vars, arrays);
                         lhs = arrayValue(array, arrayIndex);
                         System.out.println("Evaluated array " + array.name + "[" + arrayIndex + "] to " + lhs);
@@ -245,13 +272,25 @@ public class Expression {
         return tokenizerPosition - 1;
     }
 
+    private static String nextOperation(String expr) {
+        StringTokenizer tokenizer = new StringTokenizer(expr, delims, true);
+        while (tokenizer.hasMoreTokens()) {
+            String next = tokenizer.nextToken();
+            if (isOperation(next)) {
+                return next;
+            }
+
+        }
+        return null;
+    }
+
     private static float performOperation(float first, float second, String operator)  throws IllegalArgumentException {
         float result;
         if (operator.equals("+")) {
             result = first + second;
             System.out.println("Adding " + first + " and " + second + " = " + result);
         } else if (operator.equals("-")) {
-            result = first - second;
+                result = first - second;
             System.out.println("Subtrating " + first + " and " + second + " = " + result);
         } else if (operator.equals("*")) {
             result = first * second;
@@ -277,8 +316,15 @@ public class Expression {
 
     private static boolean isOpenSquareParantheses(String token) { return token.equals("["); }
     private static boolean isOpenParantheses(String token) { return token.equals("("); }
-    private static boolean isHigherOrderOperator(String token) {
-        return token.equals("*") || token.equals("/");
+    private static boolean isHigherOrderOperator(String token, String nextToken) {
+        if (nextToken == null) return true;
+        if (token.equals("*") || token.equals("/")) {
+            return true;
+        } else if (nextToken.equals("*") || nextToken.equals("/")) {
+            return false;
+        } else {
+            return token.equals("-");
+        }
     }
 
 
@@ -324,7 +370,7 @@ public class Expression {
             System.out.println(symbol);
         }
     }
-    
+
     private static void printArrays(ArrayList<Array> arrays) {
         for (Array symbol: arrays) {
             System.out.println(symbol);

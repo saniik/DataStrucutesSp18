@@ -1,3 +1,5 @@
 varx 6
 vary 5
 arrayA 10 (3,5) (8,12) (9,1)
+arrayB 50 (2,1)
+arrayCARR 20 (2,3)
