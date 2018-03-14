@@ -36,7 +36,39 @@ public class Tree {
 	 * The root of the tree that is built is referenced by the root field of this object.
 	 */
 	public void build() {
-		/** COMPLETE THIS METHOD **/
+
+		root = build2();
+
+	}
+	private TagNode build2() {
+		int length;
+		String line = null;
+		boolean domlines = sc.hasNextLine();
+
+		if (domlines == true) {
+			line = sc.nextLine();
+		} else {
+			return null;
+		}
+
+		length = line.length();
+		boolean child = false;
+
+		if (line.charAt(0) == '<') {
+			line = line.substring(1, length - 1);
+			if (line.charAt(0) == '/') {
+				return null;
+			} else {
+				child = true;
+			}
+		}
+
+		TagNode temp = new TagNode (line, null, null);
+		if(child == true) {
+			temp.firstChild = build2();
+		}
+		temp.sibling = build2();
+		return temp;
 	}
 	
 	/**
