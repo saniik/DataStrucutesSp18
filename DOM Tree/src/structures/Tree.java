@@ -37,39 +37,10 @@ public class Tree {
 	 */
 	public void build() {
 
-		root = build2();
+		root = recursiveBuild();
 
 	}
-	private TagNode build2() {
-		int length;
-		String line = null;
-		boolean domlines = sc.hasNextLine();
 
-		if (domlines == true) {
-			line = sc.nextLine();
-		} else {
-			return null;
-		}
-
-		length = line.length();
-		boolean child = false;
-
-		if (line.charAt(0) == '<') {
-			line = line.substring(1, length - 1);
-			if (line.charAt(0) == '/') {
-				return null;
-			} else {
-				child = true;
-			}
-		}
-
-		TagNode temp = new TagNode (line, null, null);
-		if(child == true) {
-			temp.firstChild = build2();
-		}
-		temp.sibling = build2();
-		return temp;
-	}
 	
 	/**
 	 * Replaces all occurrences of an old tag in the DOM tree with a new tag
@@ -78,28 +49,10 @@ public class Tree {
 	 * @param newTag Replacement tag
 	 */
 	public void replaceTag(String oldTag, String newTag) {
-		swapTag(root, oldTag, newTag);
+		recursiveReplace(root, oldTag, newTag);
 	}
 
-	private void swapTag(TagNode tempRoot, String old, String newer) {
-		TagNode current = tempRoot;
-		if (current == null) {
-			return;
-		}
-		System.out.println("TempRoot: " + tempRoot);
 
-		if (current.tag.equals(old)) {
-			System.out.println("Replacing "+ tempRoot.tag + " with " + newer);
-			current.tag = newer;
-
-		}
-		System.out.println("TempRoot sibling:" + tempRoot.sibling);
-		System.out.println("TempRoot child: " + tempRoot.firstChild);
-		swapTag(tempRoot.firstChild, old, newer);
-		swapTag(tempRoot.sibling, old, newer);
-
-	}
-	
 	/**
 	 * Boldfaces every column of the given row of the table in the DOM tree. The boldface (b)
 	 * tag appears directly under the td tag of every column of this row.
@@ -109,18 +62,16 @@ public class Tree {
 	public void boldRow(int row) {
 		TagNode current = new TagNode(null, null, null);
 		TagNode temp;
-		current = boldrow2(root);
+		current = recursiveBold(root);
 		if (current == null) {
 			System.out.println("No table");
 			return;
 		}
 		current = current.firstChild;
-
 		//rows of table
 		for(int i = 1; i < row; i++) {
 			current = current.sibling;
 		}
-
 		//columns of table
 		for (temp = current.firstChild; temp != null; temp = temp.sibling) {
 			temp.firstChild = new TagNode("b", temp.firstChild, null);
@@ -129,27 +80,6 @@ public class Tree {
 
 	}
 
-	private TagNode boldrow2(TagNode current) {
-		if (current == null)
-			return null;
-
-		TagNode tempNode = null;
-		String temp = current.tag;
-
-		if(temp.equals("table")) {
-			tempNode = current;
-			return tempNode;
-		}
-
-		if(tempNode == null) {
-			tempNode = boldrow2(current.firstChild);
-		}
-
-		if(tempNode == null) {
-			tempNode = boldrow2(current.sibling);
-		}
-		return tempNode;
-	}
 		
 	
 	
@@ -161,9 +91,14 @@ public class Tree {
 	 * @param tag Tag to be removed, can be p, em, b, ol, or ul
 	 */
 	public void removeTag(String tag) {
-		/** COMPLETE THIS METHOD **/
+		if((tag.equals("p") || tag.equals("em") || tag.equals("b"))){
+			recursiveRemoveSimple(root, tag);
+		}
+		if((tag.equals("ol") || tag.equals("ul"))){
+			recursiveRemoveComplicated(root, tag);
+		}
 	}
-	
+
 	/**
 	 * Adds a tag around all occurrences of a word in the DOM tree.
 	 * 
@@ -171,15 +106,17 @@ public class Tree {
 	 * @param tag Tag to be added
 	 */
 	public void addTag(String word, String tag) {
-		/** COMPLETE THIS METHOD **/
+		if (tag.equals("em") || tag.equals("b")) {
+			recursiveAdd(root, word.toLowerCase(), tag);
+		}
 	}
-	
+
 	/**
 	 * Gets the HTML represented by this DOM tree. The returned string includes
 	 * new lines, so that when it is printed, it will be identical to the
 	 * input file from which the DOM tree was built.
-	 * 
-	 * @return HTML string, including new lines. 
+	 *
+	 * @return HTML string, including new lines.
 	 */
 	public String getHTML() {
 		StringBuilder sb = new StringBuilder();
@@ -216,7 +153,7 @@ public class Tree {
 		for (TagNode ptr=root; ptr != null;ptr=ptr.sibling) {
 			for (int i=0; i < level-1; i++) {
 				System.out.print("      ");
-			};
+			}
 			if (root != this.root) {
 				System.out.print("|---- ");
 			} else {
@@ -228,4 +165,161 @@ public class Tree {
 			}
 		}
 	}
+
+	/////////////HELPER METHODS (MINE)////////////
+
+	private TagNode recursiveBuild() {
+		int length;
+		String line = null;
+		boolean domlines = sc.hasNextLine();
+
+		if (domlines == true) {
+			line = sc.nextLine();
+		} else {
+			return null;
+		}
+		length = line.length();
+		boolean child = false;
+
+		if (line.charAt(0) == '<') {
+			line = line.substring(1, length - 1);
+			if (line.charAt(0) == '/') {
+				return null;
+			} else {
+				child = true;
+			}
+		}
+
+		TagNode temp = new TagNode (line, null, null);
+		if (child == true) {
+			temp.firstChild = recursiveBuild();
+		}
+		temp.sibling = recursiveBuild();
+		return temp;
+	}
+
+	private void recursiveReplace(TagNode tempRoot, String old, String newer) {
+		TagNode current = tempRoot;
+		if (current == null) {
+			return;
+		}
+		if (current.tag.equals(old)) {
+			current.tag = newer;
+		}
+		recursiveReplace(tempRoot.firstChild, old, newer);
+		recursiveReplace(tempRoot.sibling, old, newer);
+	}
+
+	private TagNode recursiveBold(TagNode current) {
+		if (current == null) {
+			return null;
+		}
+		TagNode tempNode = null;
+		String temp = current.tag;
+
+		if (temp.equals("table")) {
+			tempNode = current;
+			return tempNode;
+		}
+
+		if (tempNode != null) {
+			tempNode = recursiveBold(current.firstChild);
+		}
+
+		if (tempNode == null) {
+			tempNode = recursiveBold(current.sibling);
+		}
+		return tempNode;
+	}
+
+	private void recursiveAdd(TagNode tempRoot, String word, String tag) {
+		if(tempRoot == null) {
+			return;
+		}
+
+		recursiveAdd(tempRoot.firstChild, word, tag);
+		recursiveAdd(tempRoot.sibling, word, tag);
+
+		if (tempRoot.firstChild == null) {
+			while (tempRoot.tag.toLowerCase().contains(word)) {
+				String[] splits = tempRoot.tag.split(" ");
+				Boolean match = false;
+				String taggedWord = "";
+				StringBuilder taggerString = new StringBuilder(tempRoot.tag.length());
+				int counter = 0;
+				for (int words = 0; words < splits.length; words++) {
+					if (splits[words].toLowerCase().matches(word+"[.,?!:;]?")) {
+						match = true;
+						taggedWord = splits[words];
+						for (int integer = words + 1; integer < splits.length; integer++) {
+							taggerString.append(splits[integer]+" ");
+						}
+						break;
+					}
+				}
+				if (!match){
+					return;
+				}
+				String finalString = taggerString.toString().trim();
+				if(counter == 0) {
+					tempRoot.firstChild = new TagNode(taggedWord, null, null);
+					tempRoot.tag = tag;
+					if (!finalString.equals("")) {
+						tempRoot.sibling = new TagNode(finalString, null, tempRoot.sibling);
+						tempRoot = tempRoot.sibling;
+					}
+				} else {
+					TagNode taggedWordNode = new TagNode(taggedWord, null, null);
+					TagNode newTag = new TagNode(tag, taggedWordNode, tempRoot.sibling);
+					tempRoot.sibling = newTag;
+					tempRoot.tag = tempRoot.tag.replaceFirst(" " + taggedWord, "");
+					if (!finalString.equals("")) {
+						tempRoot.tag = tempRoot.tag.replace(finalString, "");
+						newTag.sibling = new TagNode(finalString, null, newTag.sibling);
+						tempRoot = newTag.sibling;
+					}
+				}
+			}
+		}
+	}
+
+	private void recursiveRemoveSimple(TagNode tempRoot, String tag) { // em p b
+		if (tempRoot == null) {
+			return;
+		}
+
+		if (tempRoot.tag.equals(tag) && tempRoot.firstChild != null) {
+			tempRoot.tag = tempRoot.firstChild.tag;
+			if (tempRoot.firstChild.sibling != null) {
+				TagNode traverseTag = null;
+				for (traverseTag = tempRoot.firstChild; traverseTag.sibling != null; traverseTag = traverseTag.sibling) {
+					traverseTag.sibling = tempRoot.sibling;
+					tempRoot.sibling = tempRoot.firstChild.sibling;
+				}
+			}
+			tempRoot.firstChild = tempRoot.firstChild.firstChild;
+		}
+		recursiveRemoveSimple(tempRoot.firstChild, tag);
+		recursiveRemoveSimple(tempRoot.sibling, tag);
+	}
+	private void recursiveRemoveComplicated(TagNode tempRoot, String tag) { // ol ul
+		if (tempRoot == null) return;
+		if (tempRoot.tag.equals(tag) && tempRoot.firstChild != null) {
+			tempRoot.tag = "p";
+			TagNode traverseTag = null;
+			for (traverseTag = tempRoot.firstChild; traverseTag.sibling != null; traverseTag = traverseTag.sibling) {
+				traverseTag.tag = "p";
+			}
+			traverseTag.tag = "p";
+			traverseTag.sibling = tempRoot.sibling;
+			tempRoot.sibling = tempRoot.firstChild.sibling;
+			tempRoot.firstChild = tempRoot.firstChild.firstChild;
+		}
+
+		recursiveRemoveComplicated(tempRoot.firstChild, tag);
+		recursiveRemoveComplicated(tempRoot.sibling, tag);
+	}
+
 }
+
+

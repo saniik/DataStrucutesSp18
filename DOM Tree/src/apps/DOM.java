@@ -78,9 +78,9 @@ public class DOM {
 				tree.removeTag(stdin.nextLine().trim());
 			} else if (option == 'a') {
 				System.out.print("\tEnter text to tag => ");
-				String text = stdin.next().trim();
+				String text = stdin.nextLine().trim();
 				System.out.print("\tEnter tag => ");
-				String tag = stdin.next().trim();
+				String tag = stdin.nextLine().trim();
 				tree.addTag(text, tag);
 			}
 		}
