@@ -87,12 +87,14 @@ public class Tree {
 			return;
 		}
 		System.out.println("TempRoot: " + tempRoot);
+
+		if ((tempRoot.tag.equals(old)) && tempRoot.firstChild != null){
+			System.out.println("Replacing "+ tempRoot.tag + " with " + newer);
+			tempRoot.tag = newer;
+
+		}
 		System.out.println("TempRoot sibling:" + tempRoot.sibling);
 		System.out.println("TempRoot child: " + tempRoot.firstChild);
-		if ((tempRoot.tag.equals(old)) && tempRoot.firstChild != null){
-			tempRoot.tag = newer;
-		}
-		
 		swapTag(tempRoot.sibling, old, newer);
 		swapTag(tempRoot.firstChild, old, newer);
 	}
