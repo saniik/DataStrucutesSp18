@@ -78,7 +78,23 @@ public class Tree {
 	 * @param newTag Replacement tag
 	 */
 	public void replaceTag(String oldTag, String newTag) {
-		/** COMPLETE THIS METHOD **/
+		swapTag(root, oldTag, newTag);
+	}
+
+	private void swapTag(TagNode tempRoot, String old, String newer){
+
+		if (tempRoot == null){
+			return;
+		}
+		System.out.println("TempRoot: " + tempRoot);
+		System.out.println("TempRoot sibling:" + tempRoot.sibling);
+		System.out.println("TempRoot child: " + tempRoot.firstChild);
+		if ((tempRoot.tag.equals(old)) && tempRoot.firstChild != null){
+			tempRoot.tag = newer;
+		}
+		
+		swapTag(tempRoot.sibling, old, newer);
+		swapTag(tempRoot.firstChild, old, newer);
 	}
 	
 	/**
