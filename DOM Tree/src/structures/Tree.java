@@ -222,7 +222,7 @@ public class Tree {
 			return tempNode;
 		}
 
-		if (tempNode != null) {
+		if (tempNode == null) {
 			tempNode = recursiveBold(current.firstChild);
 		}
 
