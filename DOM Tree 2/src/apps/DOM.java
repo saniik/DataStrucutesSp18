@@ -49,16 +49,16 @@ public class DOM {
 					tree.print();
 			} else if (option == 'r') {
 				System.out.print("\tEnter old tag => ");
-				String oldTag = stdin.nextLine();
+				String oldTag = stdin.next();
 				System.out.print("\tEnter new tag => ");
-				String newTag = stdin.nextLine();
+				String newTag = stdin.next();
 				tree.replaceTag(oldTag, newTag);
 			} else if (option == 'b') {
 				System.out.print("\tEnter row number (1..n) => ");
 				int row;
 				while (true) {
 					try {
-						row = Integer.parseInt(stdin.nextLine());
+						row = Integer.parseInt(stdin.next());
 						if (row > 0) {
 							break;
 						} else {
@@ -75,7 +75,7 @@ public class DOM {
 				}
 			} else if (option == 'd') {
 				System.out.print("\tEnter tag to remove => ");
-				tree.removeTag(stdin.nextLine().trim());
+				tree.removeTag(stdin.next().trim());
 			} else if (option == 'a') {
 				System.out.print("\tEnter text to tag => ");
 				String text = stdin.next().trim();
