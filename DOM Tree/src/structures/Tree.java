@@ -246,25 +246,28 @@ public class Tree {
 				Boolean match = false;
 				String taggedWord = "";
 				StringBuilder taggerString = new StringBuilder(tempRoot.tag.length());
-				int counter = 0;
-				for (int words = 0; words < splits.length; words++) {
-					if (splits[words].toLowerCase().matches(word+"[.,?!:;]?")) {
+				int counter = 1;
+				for (String split : splits) {
+					if (split.toLowerCase().matches(word + "[.,?!:;]?")) {
 						match = true;
-						taggedWord = splits[words];
-						for (int integer = words + 1; integer < splits.length; integer++) {
-							taggerString.append(splits[integer]+" ");
+						taggedWord = split;
+						for (int integer = counter; integer < splits.length; integer++) {
+							taggerString.append(splits[integer]).append(" ");
+							counter++;
 						}
+
 						break;
+
 					}
 				}
 				if (!match){
 					return;
 				}
 				String finalString = taggerString.toString().trim();
-				if(counter == 0) {
+				if (counter == 1) {
 					tempRoot.firstChild = new TagNode(taggedWord, null, null);
 					tempRoot.tag = tag;
-					if (!finalString.equals("")) {
+					if (finalString.equals("")) {
 						tempRoot.sibling = new TagNode(finalString, null, tempRoot.sibling);
 						tempRoot = tempRoot.sibling;
 					}
@@ -273,7 +276,7 @@ public class Tree {
 					TagNode newTag = new TagNode(tag, taggedWordNode, tempRoot.sibling);
 					tempRoot.sibling = newTag;
 					tempRoot.tag = tempRoot.tag.replaceFirst(" " + taggedWord, "");
-					if (!finalString.equals("")) {
+					if (finalString.equals("")) {
 						tempRoot.tag = tempRoot.tag.replace(finalString, "");
 						newTag.sibling = new TagNode(finalString, null, newTag.sibling);
 						tempRoot = newTag.sibling;
